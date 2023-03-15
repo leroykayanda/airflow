@@ -1,0 +1,26 @@
+name: Deploy Development
+
+on:
+  push:
+    branches: ["dev"]
+
+jobs:
+  deploy-infra:
+    uses: ./.github/workflows/deploy-infra.yml
+    secrets: inherit
+
+  deploy-app:
+    needs: deploy-infra
+    uses: ./.github/workflows/deploy-app.yml
+    with:
+      region: eu-west-1
+      ecr_repo: dev-airflow
+      ecs_cluster: dev-airflow
+      env: dev
+      webserver_ecs_service: dev-airflow-webserver
+      webserver_application_name: airflow-webserver
+      scheduler_ecs_service: dev-airflow-scheduler
+      scheduler_application_name: airflow-scheduler
+      worker_ecs_service: dev-airflow-worker
+      worker_application_name: airflow-worker
+    secrets: inherit

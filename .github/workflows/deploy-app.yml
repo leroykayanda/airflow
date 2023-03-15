@@ -1,0 +1,126 @@
+name: Deploy-App
+
+on:
+  workflow_call:
+    inputs:
+      region:
+        required: true
+        type: string
+      ecr_repo:
+        required: true
+        type: string
+      ecs_cluster:
+        required: true
+        type: string
+      env:
+        required: true
+        type: string
+      webserver_application_name:
+        required: true
+        type: string
+      webserver_ecs_service:
+        required: true
+        type: string
+      scheduler_application_name:
+        required: true
+        type: string
+      scheduler_ecs_service:
+        required: true
+        type: string
+      worker_application_name:
+        required: true
+        type: string
+      worker_ecs_service:
+        required: true
+        type: string
+
+env:
+  AWS_REGION: ${{ inputs.region }}
+  ECR_REPOSITORY: ${{ inputs.ecr_repo }}
+  ECS_CLUSTER: ${{ inputs.ecs_cluster }}
+  WEBSERVER_ECS_TASK_DEFINITION: terraform/task-definitions/${{ inputs.env }}-${{ inputs.webserver_application_name }}.json
+  WEBSERVER_CONTAINER_NAME: ${{ inputs.webserver_application_name }}
+  WEBSERVER_ECS_SERVICE: ${{ inputs.webserver_ecs_service }}
+  SCHEDULER_ECS_TASK_DEFINITION: terraform/task-definitions/${{ inputs.env }}-${{ inputs.scheduler_application_name }}.json
+  SCHEDULER_CONTAINER_NAME: ${{ inputs.scheduler_application_name }}
+  SCHEDULER_ECS_SERVICE: ${{ inputs.scheduler_ecs_service }}
+  WORKER_ECS_TASK_DEFINITION: terraform/task-definitions/${{ inputs.env }}-${{ inputs.worker_application_name }}.json
+  WORKER_CONTAINER_NAME: ${{ inputs.worker_application_name }}
+  WORKER_ECS_SERVICE: ${{ inputs.worker_ecs_service }}
+
+jobs:
+  app-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_973967305414_CICD_USER }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_973967305414_CICD_USER }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -f build/Dockerfile .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Webserver - Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.WEBSERVER_ECS_TASK_DEFINITION }}
+          container-name: ${{ env.WEBSERVER_CONTAINER_NAME }}
+          image: ${{ env.image }}
+
+      - name: Sheduler - Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-2
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.SCHEDULER_ECS_TASK_DEFINITION }}
+          container-name: ${{ env.SCHEDULER_CONTAINER_NAME }}
+          image: ${{ env.image }}
+
+      - name: Worker - Fill in the new image ID in the Amazon ECS task definition
+        id: task-def-3
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.WORKER_ECS_TASK_DEFINITION }}
+          container-name: ${{ env.WORKER_CONTAINER_NAME }}
+          image: ${{ env.image }}
+
+      - name: Webserver - Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.WEBSERVER_ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Sheduler - Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-2.outputs.task-definition }}
+          service: ${{ env.SCHEDULER_ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Worker - Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def-3.outputs.task-definition }}
+          service: ${{ env.WORKER_ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true

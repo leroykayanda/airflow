@@ -1,0 +1,47 @@
+name: Deploy-Infra
+
+on:
+  workflow_call:
+
+jobs:
+  terraform-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.CREDRAILS_SSH_GITHUB_CI }}
+          name: id_ed25519
+          known_hosts: github.com
+          config: ${{ secrets.CONFIG }}
+          if_key_exists: ignore
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TERRAFORM_CLOUD_TOKEN }}
+
+      - name: Terraform fmt
+        id: fmt
+        run: terraform fmt -check
+        continue-on-error: true
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Apply
+        id: plan
+        run: terraform apply -auto-approve
+        continue-on-error: false

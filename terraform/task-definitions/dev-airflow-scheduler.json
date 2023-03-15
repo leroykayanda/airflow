@@ -1,0 +1,152 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:eu-west-1:973967305414:task-definition/dev-airflow-scheduler-task-definition:24",
+    "containerDefinitions": [
+        {
+            "name": "airflow-scheduler",
+            "image": "973967305414.dkr.ecr.eu-west-1.amazonaws.com/dev-airflow:56746737e808201926d2aea73559794e876ca957",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "command": [
+                "scheduler"
+            ],
+            "environment": [],
+            "mountPoints": [
+                {
+                    "sourceVolume": "worker-logs",
+                    "containerPath": "/opt/airflow/logs"
+                }
+            ],
+            "volumesFrom": [],
+            "secrets": [
+                {
+                    "name": "AIRFLOW__CORE__EXECUTOR",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CORE__EXECUTOR"
+                },
+                {
+                    "name": "AIRFLOW__DATABASE__SQL_ALCHEMY_CONN",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__DATABASE__SQL_ALCHEMY_CONN"
+                },
+                {
+                    "name": "AIRFLOW__CORE__SQL_ALCHEMY_CONN",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CORE__SQL_ALCHEMY_CONN"
+                },
+                {
+                    "name": "AIRFLOW__CELERY__RESULT_BACKEND",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CELERY__RESULT_BACKEND"
+                },
+                {
+                    "name": "AIRFLOW__CELERY__BROKER_URL",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CELERY__BROKER_URL"
+                },
+                {
+                    "name": "AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION"
+                },
+                {
+                    "name": "AIRFLOW__CORE__LOAD_EXAMPLES",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CORE__LOAD_EXAMPLES"
+                },
+                {
+                    "name": "AIRFLOW__API__AUTH_BACKENDS",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__API__AUTH_BACKENDS"
+                },
+                {
+                    "name": "_PIP_ADDITIONAL_REQUIREMENTS",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/_PIP_ADDITIONAL_REQUIREMENTS"
+                },
+                {
+                    "name": "AIRFLOW__CORE__FERNET_KEY",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__CORE__FERNET_KEY"
+                },
+                {
+                    "name": "AIRFLOW__WEBSERVER__SECRET_KEY",
+                    "valueFrom": "arn:aws:ssm:eu-west-1:973967305414:parameter/dev/airflow/AIRFLOW__WEBSERVER__SECRET_KEY"
+                }
+            ],
+            "user": "50000:0",
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "dev-airflow-scheduler-container-logs",
+                    "awslogs-region": "eu-west-1",
+                    "awslogs-stream-prefix": "dev"
+                }
+            }
+        }
+    ],
+    "family": "dev-airflow-scheduler-task-definition",
+    "taskRoleArn": "arn:aws:iam::973967305414:role/dev-airflow-scheduler-Task-Execution-Role",
+    "executionRoleArn": "arn:aws:iam::973967305414:role/dev-airflow-scheduler-Task-Execution-Role",
+    "networkMode": "awsvpc",
+    "revision": 24,
+    "volumes": [
+        {
+            "name": "worker-logs",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0b042c2c3b8754b7b",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED",
+                "authorizationConfig": {
+                    "accessPointId": "fsap-0758bf57021ed7177",
+                    "iam": "DISABLED"
+                }
+            }
+        }
+    ],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.17"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "ecs.capability.secrets.ssm.environment-variables"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.efsAuth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.efs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "1024",
+    "memory": "2048",
+    "registeredAt": "2023-03-10T01:39:33.994Z",
+    "registeredBy": "arn:aws:iam::973967305414:user/terraform_user",
+    "tags": []
+}
