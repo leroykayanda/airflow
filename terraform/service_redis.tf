@@ -1,5 +1,5 @@
 module "redis_cluster" {
-  source                     = "git@github.com:Credrails/terraform-modules.git//modules/aws-elasticache?ref=v1.0.20"
+  source                     = "git@github.com:abc/terraform-modules.git//modules/aws-elasticache?ref=v1.0.20"
   env                        = var.env
   microservice_name          = var.microservice_name
   team                       = var.team

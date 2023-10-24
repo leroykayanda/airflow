@@ -2,10 +2,17 @@ name: Deploy-Infra
 
 on:
   workflow_call:
+    inputs:
+      terraform_workspace:
+        required: true
+        type: string
 
 jobs:
   terraform-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TF_WORKSPACE: ${{ inputs.terraform_workspace }}
     defaults:
       run:
         working-directory: terraform
@@ -17,7 +24,7 @@ jobs:
       - name: Install SSH key
         uses: shimataro/ssh-key-action@v2
         with:
-          key: ${{ secrets.CREDRAILS_SSH_GITHUB_CI }}
+          key: ${{ secrets.ABC_SSH_GITHUB_CI }}
           name: id_ed25519
           known_hosts: github.com
           config: ${{ secrets.CONFIG }}
@@ -31,7 +38,6 @@ jobs:
       - name: Terraform fmt
         id: fmt
         run: terraform fmt -check
-        continue-on-error: true
 
       - name: Terraform Init
         id: init

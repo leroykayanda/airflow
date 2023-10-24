@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.region
-}
-
 locals {
   webserver_service_name = "airflow-webserver"
   scheduler_service_name = "airflow-scheduler"
@@ -11,7 +7,7 @@ locals {
 
 
 module "ecs_cluster" {
-  source            = "git@github.com:Credrails/terraform-modules.git//modules/aws-ecs-cluster?ref=v1.0.22"
+  source            = "git@github.com:abc/terraform-modules.git//modules/aws-ecs-cluster?ref=v1.0.22"
   env               = var.env
   team              = var.team
   microservice_name = var.microservice_name
@@ -19,7 +15,7 @@ module "ecs_cluster" {
 }
 
 module "ecr_repo" {
-  source            = "git@github.com:Credrails/terraform-modules.git//modules/aws-ecr-repo?ref=v1.0.36"
+  source            = "git@github.com:abc/terraform-modules.git//modules/aws-ecr-repo?ref=v1.0.36"
   env               = var.env
   microservice_name = var.microservice_name
 }

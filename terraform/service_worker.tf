@@ -104,7 +104,7 @@ resource "aws_security_group" "worker_task_sg" {
 }
 
 module "efs" {
-  source            = "git@github.com:Credrails/terraform-modules.git//modules/aws-efs?ref=v1.0.59"
+  source            = "git@github.com:abc/terraform-modules.git//modules/aws-efs?ref=v1.0.59"
   env               = var.env
   vpc_cidr          = var.vpc_cidr
   microservice_name = local.service_name
@@ -114,9 +114,9 @@ module "efs" {
 }
 
 module "worker_ecs_service_no_ELB" {
-  source                            = "git@github.com:Credrails/terraform-modules.git//modules/ecs_service_no_ELB?ref=v1.0.63"
+  source                            = "git@github.com:abc/terraform-modules.git//modules/ecs_service_no_ELB?ref=v1.0.63"
   cluster_arn                       = module.ecs_cluster.arn
-  container_image                   = var.airflow_container_image
+  container_image                   = "${module.ecr_repo.repository_url}:${local.airflow_image_tag}"
   container_name                    = local.worker_service_name
   env                               = var.env
   region                            = var.region
@@ -125,11 +125,11 @@ module "worker_ecs_service_no_ELB" {
   fargate_cpu                       = var.worker_fargate_cpu
   fargate_mem                       = var.worker_fargate_mem
   task_environment_variables        = var.worker_environment_variables
-  task_secret_environment_variables = var.shared_environment_variables
+  task_secret_environment_variables = local.app_secrets
   desired_count                     = var.worker_desired_count
-  task_subnets                      = var.private_subnets
-  vpc_id                            = var.vpc_id
-  vpc_cidr                          = var.vpc_cidr
+  task_subnets                      = local.private_subnets
+  vpc_id                            = local.vpc_id
+  vpc_cidr                          = local.vpc_cidr
   min_capacity                      = var.worker_min_capacity
   max_capacity                      = var.worker_max_capacity
   cluster_name                      = module.ecs_cluster.name

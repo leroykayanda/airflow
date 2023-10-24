@@ -95,9 +95,9 @@ resource "aws_security_group" "scheduler_task_sg" {
 }
 
 module "scheduler_ecs_service_no_ELB" {
-  source                            = "git@github.com:Credrails/terraform-modules.git//modules/ecs_service_no_ELB?ref=v1.0.63"
+  source                            = "git@github.com:abc/terraform-modules.git//modules/ecs_service_no_ELB?ref=v1.0.63"
   cluster_arn                       = module.ecs_cluster.arn
-  container_image                   = var.airflow_container_image
+  container_image                   = "${module.ecr_repo.repository_url}:${local.airflow_image_tag}"
   container_name                    = local.scheduler_service_name
   env                               = var.env
   region                            = var.region
@@ -106,11 +106,11 @@ module "scheduler_ecs_service_no_ELB" {
   fargate_cpu                       = var.scheduler_fargate_cpu
   fargate_mem                       = var.scheduler_fargate_mem
   task_environment_variables        = []
-  task_secret_environment_variables = var.shared_environment_variables
+  task_secret_environment_variables = local.app_secrets
   desired_count                     = var.scheduler_desired_count
-  task_subnets                      = var.private_subnets
-  vpc_id                            = var.vpc_id
-  vpc_cidr                          = var.vpc_cidr
+  task_subnets                      = local.private_subnets
+  vpc_id                            = local.vpc_id
+  vpc_cidr                          = local.vpc_cidr
   min_capacity                      = var.scheduler_min_capacity
   max_capacity                      = var.scheduler_max_capacity
   cluster_name                      = module.ecs_cluster.name

@@ -4,23 +4,23 @@ on:
   push:
     branches: ["dev"]
 
-jobs:
-  deploy-infra:
-    uses: ./.github/workflows/deploy-infra.yml
-    secrets: inherit
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-  deploy-app:
-    needs: deploy-infra
-    uses: ./.github/workflows/deploy-app.yml
+jobs:
+  build-app-image:
+    uses: ./.github/workflows/build-app.yml
     with:
-      region: eu-west-1
       ecr_repo: dev-airflow
-      ecs_cluster: dev-airflow
-      env: dev
-      webserver_ecs_service: dev-airflow-webserver
-      webserver_application_name: airflow-webserver
-      scheduler_ecs_service: dev-airflow-scheduler
-      scheduler_application_name: airflow-scheduler
-      worker_ecs_service: dev-airflow-worker
-      worker_application_name: airflow-worker
+      region: eu-west-1
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_123456789_CICD_USER }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_123456789_CICD_USER }}
+
+  deploy-infra:
+    needs: ["build-app-image"]
+    uses: ./.github/workflows/deploy-infra.yml
+    with:
+      terraform_workspace: dev
     secrets: inherit

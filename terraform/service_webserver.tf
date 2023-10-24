@@ -105,16 +105,16 @@ resource "aws_security_group" "webserver_task_sg" {
 
 
 module "webserver_alb_access_log_bucket" {
-  source            = "git@github.com:Credrails/terraform-modules.git//modules/aws-alb-access-log-bucket?ref=v1.0.27"
+  source            = "git@github.com:abc/terraform-modules.git//modules/aws-alb-access-log-bucket?ref=v1.0.27"
   env               = var.env
   team              = var.team
   microservice_name = local.webserver_service_name
 }
 
 module "ecsService" {
-  source                            = "git@github.com:Credrails/terraform-modules.git//modules/aws-ecsService?ref=v1.0.60"
+  source                            = "git@github.com:abc/terraform-modules.git//modules/aws-ecsService?ref=v1.0.60"
   cluster_arn                       = module.ecs_cluster.arn
-  container_image                   = var.airflow_container_image
+  container_image                   = "${module.ecr_repo.repository_url}:${local.airflow_image_tag}"
   container_name                    = local.webserver_service_name
   container_port                    = var.webserver_container_port
   env                               = var.env
@@ -124,14 +124,14 @@ module "ecsService" {
   fargate_cpu                       = var.webserver_fargate_cpu
   fargate_mem                       = var.webserver_fargate_mem
   task_environment_variables        = []
-  task_secret_environment_variables = var.shared_environment_variables
+  task_secret_environment_variables = local.app_secrets
   desired_count                     = var.webserver_desired_count
-  task_subnets                      = var.private_subnets
-  vpc_id                            = var.vpc_id
-  vpc_cidr                          = var.vpc_cidr
+  task_subnets                      = local.private_subnets
+  vpc_id                            = local.vpc_id
+  vpc_cidr                          = local.vpc_cidr
   alb_access_log_bucket             = module.webserver_alb_access_log_bucket.bucket
   internal                          = var.webserver_internal
-  alb_public_subnets                = var.private_subnets
+  alb_public_subnets                = local.private_subnets
   deregistration_delay              = var.webserver_deregistration_delay
   health_check_path                 = var.health_check_path
   certificate_arn                   = var.certificate_arn

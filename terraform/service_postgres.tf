@@ -25,7 +25,7 @@ resource "aws_security_group" "db_security_group" {
 }
 
 module "rds" {
-  source                          = "git@github.com:Credrails/terraform-modules.git//modules/aws-rds?ref=v1.0.18"
+  source                          = "git@github.com:abc/terraform-modules.git//modules/aws-rds?ref=v1.0.18"
   env                             = var.env
   team                            = var.team
   microservice_name               = var.microservice_name
